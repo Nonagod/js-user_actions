@@ -1,14 +1,14 @@
 {
-  "name": "npm_module-tempalte",
-  "version": "0.0.0",
-  "description": "Шаблон npm пакета.",
+  "name": "uam-client",
+  "version": "0.0.1",
+  "description": "Пакет описывает абстракцию \"менеджера действий пользователя\", со стороны клиента.",
   "main": "src/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
-    "url": ""
+    "url": "https://github.com/Nonagod/uam-client"
   },
   "author": {
     "name" : "Nonagod",
