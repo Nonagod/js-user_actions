@@ -69,8 +69,6 @@
 
             _resolveDataOption( data ) {
                 if( typeof data === "object" ){
-                    if( data.user_action === 'undefined' || typeof data.user_action !== "string") this._printErrorMsg('"Data" option must contain "user_action" parameter, of type string.')
-
                     if( Object.prototype.toString.call( data ) !== '[object FormData]' ) {
                         let form_data = new FormData();
                         for( let [key, value] of Object.entries(data) ) {
@@ -78,6 +76,9 @@
                         }
                         data = form_data;
                     }
+
+                    let user_action = data.get('user_action');
+                    if( !user_action || user_action === 'undefined' || typeof user_action !== "string") this._printErrorMsg('"Data" option must contain "user_action" parameter, of type string.')
 
                 }else this._printErrorMsg( 'Data option must be a object.', data );
 
