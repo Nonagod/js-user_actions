@@ -16,9 +16,9 @@
         class UAMError extends Error {
             static COMMON_ERROR_CODE = 'SOMETHING_WENT_WRONG';
 
-            constructor(msg = "", error_info = {code: UAMError.COMMON_ERROR_CODE}, SystemError = undefined) {
+            constructor(msg = "", info = {code: UAMError.COMMON_ERROR_CODE}, SystemError = undefined) {
                 super(msg);
-                this.error_info = typeof error_info === 'string' ? {code: error_info} : error_info;
+                this.info = typeof info === 'string' ? {code: info} : info;
                 this.SystemError = SystemError;
             }
         }
@@ -51,10 +51,10 @@
                                 body: this._options.FormData
                             })
                             .then( this._handleResponse.bind( this ))
-                            .then( this._handleResponseResult.bind( this ))
+                            .then( this._handleResponseData.bind( this ))
                             .catch( this._handleResponseError.bind( this ));
 
-                    }else this._handleResponseResult( this._options.emulation( options ));
+                    }else this._handleResponseData( this._options.emulation( options ));
                 }
             }
 
@@ -109,16 +109,18 @@
 
             _handleResponse( response ) {
                 if( !response.ok ) throw new UAMError(`${response.status} ${response.statusText}`);
+
                 return response.json();
             }
-            _handleResponseResult( result ) {
-                if( !result.status ) throw new UAMError('', result.data);
-                this._printDebugMsg('request result is', result)
-                this._options.handlers.success( result.data );
+            _handleResponseData( response_data ) {
+                if( !response_data.status ) throw new UAMError('', response_data.result);
+
+                this._printDebugMsg('request result is', response_data.result)
+                this._options.handlers.success( response_data.result );
             }
             _handleResponseError( Error ) {
-                debugger;
                 if( !Boolean(Error instanceof UAMError )) Error = new UAMError( undefined, undefined, Error )
+
                 this._printDebugMsg('an error occurred', Error)
                 this._options.handlers.error( Error );
             }
