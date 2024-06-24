@@ -10,7 +10,7 @@ esbuild.build({
     sourcemap: true,
     plugins: [babel()], // берет настройки из .babelrc, preset-env учитывает target из .browserslistrc
     target: ['chrome58', 'firefox57', 'safari11', 'edge16'],
-    outfile: 'dist/PROJECT_NAME.min.js',
+    outfile: 'dist/user_actions.min.js',
 }).catch(() => process.exit(1));
 
 // Пришлось добавлять конфигурацию и babel т.к. esbuild давай ошибку на деструкторе (es5 синтаксис)
