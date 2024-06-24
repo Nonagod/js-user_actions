@@ -1,23 +1,38 @@
 {
-  "name": "uam-client",
+  "name": "js-user_actions",
   "version": "0.0.2",
-  "description": "Пакет описывает абстракцию \"менеджера действий пользователя\", со стороны клиента.",
-  "main": "src/index.js",
+  "description": "Пакет описывает абстракцию \"User Actions\", со стороны клиента.",
+  "main": "dist/index.js",
+  "module": "dist/index.esm.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "prepare": "git config core.hooksPath .git-hooks || echo 'Not in a git repo'",
+    "clean": "rimraf dist/ && mkdir -p ./dist",
+    "buildCJS": "esbuild src/index.js --bundle --outfile=dist/index.js --format=cjs",
+    "buildESM": "esbuild src/index.js --bundle --outfile=dist/index.esm.js --format=esm",
+    "buildWeb": "esbuild src/index.web.js --bundle --minify --sourcemap --target=chrome58,firefox57,safari11,edge16 --outfile=dist/PROJECT_NAME.min.js",
+    "build": "npm run clean && npm run buildCJS && npm run buildESM && npm run buildWeb"
+  },
+  "config": {
+    "commitizen": {
+      "path": "@commitlint/cz-commitlint"
+    }
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/Nonagod/uam-client"
+    "url": "https://github.com/Nonagod/js-user_actions"
   },
   "author": {
     "name" : "Nonagod",
-    "email" : "nonagod.public@gmail.com",
+    "email" : "danilov.ss-pr@yandex.ru",
     "url" : "https://github.com/Nonagod"
   },
   "license": "MIT",
-  "dependencies": {
-    "gulp": "^4.0.2",
-    "webpack-stream": "^7.0.0"
+  "devDependencies": {
+    "@commitlint/config-conventional": "^19.1.0",
+    "@commitlint/cz-commitlint": "^19.2.0",
+    "commitizen": "^4.3.0",
+    "commitlint": "^19.2.1",
+    "esbuild": "^0.21.5",
+    "rimraf": "^5.0.7"
   }
 }
