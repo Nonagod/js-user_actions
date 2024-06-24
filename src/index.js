@@ -1,21 +1,14 @@
+class UAMError extends Error {
+    static COMMON_ERROR_CODE = 'SOMETHING_WENT_WRONG';
 
+    constructor(msg = "", info = {code: UAMError.COMMON_ERROR_CODE}, SystemError = undefined) {
+        super(msg);
+        this.info = typeof info === 'string' ? {code: info} : info;
+        this.SystemError = SystemError;
+    }
+}
 
-(function (w){
-
-    if( w ) {
-        if( !w.hasOwnProperty('NG') ) w.NG = {};
-
-        class UAMError extends Error {
-            static COMMON_ERROR_CODE = 'SOMETHING_WENT_WRONG';
-
-            constructor(msg = "", info = {code: UAMError.COMMON_ERROR_CODE}, SystemError = undefined) {
-                super(msg);
-                this.info = typeof info === 'string' ? {code: info} : info;
-                this.SystemError = SystemError;
-            }
-        }
-
-        class UserActionManager {
+class UserAction {
             _options = {};
 
             _last_data = null;
@@ -126,7 +119,4 @@
 
         }
 
-        w.NG.UAM = new UserActionManager();
-    }
-
-})( typeof window !== 'undefined' ? window : null );
+export default  UserAction;
