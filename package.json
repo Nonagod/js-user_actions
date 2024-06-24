@@ -9,7 +9,7 @@
     "clean": "rimraf dist/ && mkdir -p ./dist",
     "buildCJS": "esbuild src/index.js --bundle --outfile=dist/index.js --format=cjs",
     "buildESM": "esbuild src/index.js --bundle --outfile=dist/index.esm.js --format=esm",
-    "buildWeb": "esbuild src/index.web.js --bundle --minify --sourcemap --target=chrome58,firefox57,safari11,edge16 --outfile=dist/PROJECT_NAME.min.js",
+    "buildWeb": "NODE_ENV=web node esbuild.config.mjs",
     "build": "npm run clean && npm run buildCJS && npm run buildESM && npm run buildWeb"
   },
   "config": {
@@ -22,9 +22,9 @@
     "url": "https://github.com/Nonagod/js-user_actions"
   },
   "author": {
-    "name" : "Nonagod",
-    "email" : "danilov.ss-pr@yandex.ru",
-    "url" : "https://github.com/Nonagod"
+    "name": "Nonagod",
+    "email": "danilov.ss-pr@yandex.ru",
+    "url": "https://github.com/Nonagod"
   },
   "license": "MIT",
   "devDependencies": {
@@ -33,6 +33,9 @@
     "commitizen": "^4.3.0",
     "commitlint": "^19.2.1",
     "esbuild": "^0.21.5",
+    "esbuild-plugin-babel": "^0.2.3",
+    "@babel/preset-env": "^7.24.7",
     "rimraf": "^5.0.7"
-  }
+  },
+  "dependencies": {}
 }
