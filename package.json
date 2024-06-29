@@ -7,8 +7,8 @@
   "scripts": {
     "prepare": "git config core.hooksPath .git-hooks || echo 'Not in a git repo'",
     "clean": "rimraf dist/ && mkdir -p ./dist",
-    "buildCJS": "esbuild src/index.js --bundle --outfile=dist/index.js --format=cjs",
-    "buildESM": "esbuild src/index.js --bundle --outfile=dist/index.esm.js --format=esm",
+    "buildCJS": "esbuild ./index.js --bundle --outfile=dist/index.js --format=cjs",
+    "buildESM": "esbuild ./index.js --bundle --outfile=dist/index.esm.js --format=esm",
     "buildWeb": "NODE_ENV=web node esbuild.config.mjs",
     "build": "npm run clean && npm run buildCJS && npm run buildESM && npm run buildWeb"
   },

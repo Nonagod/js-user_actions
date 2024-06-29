@@ -4,7 +4,7 @@ import babel from 'esbuild-plugin-babel';
 // console.log( process.env.NODE_ENV );
 
 esbuild.build({
-    entryPoints: ['src/index.web.js'],
+    entryPoints: ['./index.web.js'],
     bundle: true,
     minify: true,
     sourcemap: true,
