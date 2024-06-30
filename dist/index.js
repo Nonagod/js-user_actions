@@ -81,6 +81,14 @@ var resolveOptions_default = resolveOptions;
 
 // src/getObjectFingerprint.js
 async function getObjectFingerprint(object) {
+  if (object.data) {
+    const entries = [];
+    for (let entry of object.data.entries()) {
+      entries.push(entry);
+    }
+    entries.sort((a, b) => a[0].localeCompare(b[0]));
+    object.data = await entriesToString(entries);
+  }
   let fingerprint = getSortedString(object);
   fingerprint = new TextEncoder().encode(fingerprint);
   fingerprint = await crypto.subtle.digest("SHA-256", fingerprint);
@@ -93,6 +101,26 @@ function getSortedString(object) {
     sorted_object[key] = object[key];
   });
   return JSON.stringify(sorted_object);
+}
+async function entriesToString(entries) {
+  const parts = [];
+  for (let [key, value] of entries) {
+    if (value instanceof File) {
+      const fileContent = await fileToBase64(value);
+      parts.push(`${key}=${fileContent}`);
+    } else {
+      parts.push(`${key}=${value}`);
+    }
+  }
+  return parts.join("&");
+}
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
 }
 
 // src/Errors/RepeatedRequestError.js
@@ -115,9 +143,11 @@ function handleErrorDefault(Error2) {
 
 // src/Errors/ServerRespondError.js
 var ServerRespondError = class extends Error {
-  constructor(message) {
+  constructor(message, code = null, info = null) {
     super(message);
     this.name = "ServerRespondError";
+    this.code = code;
+    this.info = info;
   }
 };
 
@@ -135,10 +165,54 @@ Caused by: ${OriginalError.stack}`;
   }
 };
 
+// src/Errors/EmulateRequestMissingError.js
+var EmulateRequestMissingError = class extends Error {
+  constructor(message) {
+    super(message);
+    this.name = "EmulateRequestMissingError";
+  }
+};
+
+// src/Emulator.js
+var Emulator = class {
+  _emulated_requests = {};
+  constructor() {
+  }
+  add(user_action, request_options, response_data) {
+    let _request_fingerprint = void 0;
+    try {
+      this._options = resolveOptions_default(user_action, request_options);
+    } catch (Error2) {
+      console.error(Error2);
+    } finally {
+      getObjectFingerprint(request_options).then(
+        (fingerprint) => {
+          this._emulated_requests[fingerprint] = response_data;
+          _request_fingerprint = fingerprint;
+        }
+      );
+    }
+    return _request_fingerprint;
+  }
+  get(fingerprinting) {
+    if (!this._emulated_requests.hasOwnProperty(fingerprinting)) throw new EmulateRequestMissingError(`There is no request with this fingerprint`);
+    return this._emulated_requests[fingerprinting];
+  }
+};
+
+// src/Errors/RequestError.js
+var RequestError = class extends Error {
+  constructor(message) {
+    super(message);
+    this.name = "RequestError";
+  }
+};
+
 // src/UserAction.js
 var UserAction = class {
   _options = {};
   _last_request_fingerprint = null;
+  Emulator = void 0;
   handleSuccessDefault = handleSuccessDefault;
   handleErrorDefault = handleErrorDefault;
   constructor() {
@@ -153,34 +227,33 @@ var UserAction = class {
         (fingerprint) => {
           if (fingerprint !== this._last_request_fingerprint) {
             this._last_request_fingerprint = fingerprint;
-            this._request();
+            if (this.Emulator) this._emulateRequest();
+            else this._request();
           } else console.warn(new RepeatedRequestError(`The same request ("${action}") is sent repeatedly`));
         }
       );
     }
   }
-  async _request() {
-    let some = await fetch(this._options.url ?? window.location.href, {
-      // ошибки самого fetch (уровня POST, CORS, net::) не отлавливаются, даже если обернуть еще в одно try...catch
-      method: "POST",
-      body: this._options.data
-    });
-    console.log(some);
+  enableEmulation() {
+    this.Emulator = new Emulator();
+  }
+  _request() {
     fetch(this._options.url ?? window.location.href, {
-      // ошибки самого fetch (уровня POST, CORS, net::) не отлавливаются, даже если обернуть еще в одно try...catch
       method: "POST",
       body: this._options.data
     }).then(this._handleResponse.bind(this)).then(this._handleData.bind(this)).catch(this._handleError.bind(this));
   }
-  // ToDo: Перевести под адаптированую концепцию под код ответа
+  _emulateRequest() {
+    new Promise((resolve) => {
+      resolve(this.Emulator.get(this._last_request_fingerprint));
+    }).then(this._handleData.bind(this)).catch(this._handleError.bind(this));
+  }
   _handleResponse(response) {
-    console.log(response);
-    if (!response.ok) throw new UAMError(`${response.status} ${response.statusText}`);
+    if (!response.ok) throw new RequestError(`${response.status} ${response.statusText}`);
     return response.json();
   }
   _handleData(response_data) {
-    console.log(response_data);
-    if (!response_data.status) throw new ServerRespondError("", response_data.result);
+    if (!response_data.status) throw new ServerRespondError(response_data.result.msg, response_data.result.code, response_data.result.info);
     (this._options.handleSuccess ?? this.handleSuccessDefault)(response_data.result);
   }
   _handleError(Error2) {
