@@ -3,10 +3,18 @@ import resolveOptions from "./resolveOptions";
 import EmulateRequestMissingError from "./Errors/EmulateRequestMissingError";
 
 
-export default class Emulator {
+export default class RequestsEmulator {
     _emulated_requests = {};
 
     constructor() {}
+
+    emulate( fingerprinting ) {
+        if( !this._emulated_requests.hasOwnProperty( fingerprinting )) throw new EmulateRequestMissingError( `There is no request with this fingerprint` );
+
+        new Promise((resolve) => {
+            resolve( this._emulated_requests[fingerprinting] )
+        });
+    }
 
     add( user_action, request_options, response_data ) {
         let _request_fingerprint = undefined;
@@ -25,10 +33,5 @@ export default class Emulator {
         }
 
         return _request_fingerprint;
-    }
-    get( fingerprinting ) {
-        if( !this._emulated_requests.hasOwnProperty( fingerprinting )) throw new EmulateRequestMissingError( `There is no request with this fingerprint` );
-
-        return this._emulated_requests[ fingerprinting ];
     }
 }

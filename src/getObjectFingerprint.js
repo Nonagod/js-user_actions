@@ -1,5 +1,8 @@
 // ToDo: вынести в ToolKit
+import cloneDeep from 'lodash.cloneDeep';
+
 export default async function getObjectFingerprint( object ) {
+    object = cloneDeep( object ); // Object.assign( {}, object ) - не подходит (выполняет поверхностное клонирование), если копии будут не полные можно рассмотреть clonedeepwith
 
     // преобразуем FormData в строку
     if( object.data ) {

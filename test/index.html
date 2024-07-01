@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+  <script src="../dist/user_actions.min.js"></script>
+</head>
+<body>
+<button id="double">Задублированный запрос</button>
+<button id="emulate">Эмулировать (перезагрузка)</button>
+<button id="send">Отправить</button>
+<button id="send_cors">Отправить (c CORS, перезагрузка)</button> <!-- сдругого сервака (можно локального, НО сервера) -->
+<script>
+    let _handlers = {
+        double: () => {
+            console.info('ДУБЛИРОВАНИЕ ЗАПРОСОВ');
+            window.UserAction.do( 'test', {});
+            window.UserAction.do( 'test', {});
+        },
+        emulate: () => {
+            console.info('ЭМУЛЯЦИЯ');
+            UserAction.enableEmulation();
+            UserAction.Emulator.add('test',
+                {
+                    data: {error: 1},
+                },
+                {
+                    status: false,
+                    result: {
+                        code: 'HAPPENED',
+                        msg: "Произошло...",
+                        info: {
+                            some: "Дополнительная информация, если есть"
+                        }
+                    }
+                }
+            );
+            UserAction.Emulator.add('test',
+                {
+                    data: {
+                        error: 0
+                    }
+                },
+                {
+                    status: true,
+                    result: {
+                        data: 'данные по соглашению'
+                    }
+                }
+            );
+            _handlers.send();
+        },
+        send: () => {
+            console.info('ОТПРАВКА НА ORIGIN');
+            window.UserAction.do( 'test', {
+                data: {error: 0}
+            });
+            /*ошибка*/window.UserAction.do( 'test', {
+                data: {error: 1}
+            });
+        },
+        /* * */send_cors: () => {
+            console.info('ОТПРАВКА НА ДРУГОЙ СЕРВЕР');
+            window.UserAction.do( 'test', {
+                data: {error: 0},
+                url: 'https://blockster-ext.websterstd.ru/'
+            });
+            /*ошибка*/window.UserAction.do( 'test', {
+                data: {error: 1},
+                url: 'https://blockster-ext.websterstd.ru/'
+            });
+
+        },
+    }
+
+    window.addEventListener( 'load', () => {
+        for( let [i, el] of Object.entries( document.querySelectorAll( 'button' ) )) {
+            el.addEventListener( 'click', _handlers[ el.id ]);
+        }
+    });
+
+</script>
+
+</body>
+</html>

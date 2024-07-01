@@ -28,14 +28,16 @@
   },
   "license": "MIT",
   "devDependencies": {
+    "@babel/preset-env": "^7.24.7",
     "@commitlint/config-conventional": "^19.1.0",
     "@commitlint/cz-commitlint": "^19.2.0",
     "commitizen": "^4.3.0",
     "commitlint": "^19.2.1",
     "esbuild": "^0.21.5",
     "esbuild-plugin-babel": "^0.2.3",
-    "@babel/preset-env": "^7.24.7",
     "rimraf": "^5.0.7"
   },
-  "dependencies": {}
+  "dependencies": {
+    "lodash.clonedeep": "^4.5.0"
+  }
 }

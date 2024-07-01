@@ -1,17 +1,15 @@
 import resolveOptions from "./resolveOptions";
-import getObjectFingerprint from "./getObjectFingerprint";
 import RepeatedRequestError from "./Errors/RepeatedRequestError";
 import handleSuccessDefault from "./Handlers/handleSuccessDefault";
 import handleErrorDefault from "./Handlers/handleErrorDefault";
 import ServerRespondError from "./Errors/ServerRespondError";
 import SomethingWentWrongError from "./Errors/SomethingWentWrongError";
-import Emulator from "./Emulator";
-import RequestError from "./Errors/RequestError";
+import RequestsEmulator from "./RequestsEmulator";
+import Request from "./Request";
 
 
 class UserAction {
-    _options = {};
-    _last_request_fingerprint = null;
+    _active_requests = [];
 
     Emulator = undefined;
 
@@ -23,63 +21,51 @@ class UserAction {
 
     do( action, options = {} ) {
         try {
-            this._options = resolveOptions( action, options );
+            options = resolveOptions( action, options );
         }catch( Error ) {
             console.error( Error );
         }finally {
-            getObjectFingerprint( this._options ).then(
-                ( fingerprint ) => {
-                    if( fingerprint !== this._last_request_fingerprint ) {
-                        this._last_request_fingerprint = fingerprint;
+            let UserRequest = new Request( options );
 
-                        if( this.Emulator ) this._emulateRequest() // fetch исключен из цепочки
-                        else this._request();
+            UserRequest
+                .getFingerprint()
+                .then(( fingerprint ) => {
+                    if( this._active_requests.indexOf( fingerprint ) === -1 ) {
+
+                        this._active_requests.push( fingerprint );
+
+                            (
+                                this.Emulator // исключаем fetch из цепочки
+                                    ? this.Emulator.emulate.bind( this.Emulator, fingerprint )
+                                    : UserRequest.send.bind( UserRequest )
+                            )()
+                            .then( this._handleData.bind( this, UserRequest ))
+                            .catch( this._handleError.bind( this, UserRequest ))
+                            .finally(() => {
+                                let index = this._active_requests.indexOf( fingerprint ); // ищем подпись запроса
+                                if( index !== -1 ) this._active_requests.splice(index, 1); // удаляем ее если есть
+                            })
 
                     }else console.warn( new RepeatedRequestError( `The same request ("${action}") is sent repeatedly` ))
 
-                }
-            );
+                });
         }
     }
 
     enableEmulation() {
-        this.Emulator = new Emulator();
+        if( !this.Emulator ) this.Emulator = new RequestsEmulator();
     }
 
 
-    _request() {
-        // ошибки самого fetch (уровня POST, CORS, net::) не отлавливаются, даже если обернуть еще в одно try...catch
-        // т.е. в консоле они будут в любом случае
-        fetch( this._options.url ?? window.location.href, {
-            method: 'POST',
-            body: this._options.data
-        })
-        .then( this._handleResponse.bind( this ))
-        .then( this._handleData.bind( this ))
-        .catch( this._handleError.bind( this ));
-    }
-    _emulateRequest() {
-        new Promise((resolve) => {
-            resolve( this.Emulator.get( this._last_request_fingerprint )) // выбросит ошибку, если нет такого запроса
-        }).then( this._handleData.bind( this ))
-        .catch( this._handleError.bind( this ));
-    }
-
-
-    _handleResponse( response ) {
-        if( !response.ok ) throw new RequestError(`${response.status} ${response.statusText}`);
-
-        return response.json();
-    }
-    _handleData( response_data ) {
+    _handleData( UserRequest, response_data ) {
         if( !response_data.status ) throw new ServerRespondError( response_data.result.msg, response_data.result.code, response_data.result.info );
 
-        (this._options.handleSuccess ?? this.handleSuccessDefault)( response_data.result );
+        (UserRequest.options.handleSuccess ?? this.handleSuccessDefault)( response_data.result );
     }
-    _handleError( Error ) {
+    _handleError( UserRequest, Error ) {
         if( !Boolean(Error instanceof ServerRespondError )) Error = new SomethingWentWrongError( Error );
 
-        (this._options.handleError ?? this.handleErrorDefault)( Error );
+        (UserRequest.options.handleError ?? this.handleErrorDefault)( Error );
     }
 }
 
