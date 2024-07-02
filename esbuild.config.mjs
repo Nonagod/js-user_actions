@@ -7,7 +7,7 @@ esbuild.build({
     entryPoints: ['./index.web.js'],
     bundle: true,
     minify: true,
-    sourcemap: true,
+    sourcemap: false,
     plugins: [babel()], // берет настройки из .babelrc, preset-env учитывает target из .browserslistrc
     target: ['chrome58', 'firefox57', 'safari11', 'edge16'],
     outfile: 'dist/user_actions.min.js',
