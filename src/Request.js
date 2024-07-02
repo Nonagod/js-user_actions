@@ -20,7 +20,7 @@ export default class Request {
         // т.е. в консоле они будут в любом случае
         return fetch( this.options.url ?? window.location.href, {
             method: 'POST',
-            //mode: 'no-cors',
+            // mode: 'no-cors', // можно добавить, но это уберет только CORS ошибку в js. С правильно настроенным сервером - будет работать и так. Иначе fetch (с откл CORS) будет давать статус запроса 0.
             body: this.options.data
         })
             .then( this._handleResponse.bind( this ));

@@ -817,7 +817,7 @@ var RequestsEmulator = class {
   }
   emulate(fingerprinting) {
     if (!this._emulated_requests.hasOwnProperty(fingerprinting)) throw new EmulateRequestMissingError(`There is no request with this fingerprint`);
-    new Promise((resolve) => {
+    return new Promise((resolve) => {
       resolve(this._emulated_requests[fingerprinting]);
     });
   }
@@ -861,7 +861,7 @@ var Request = class {
   async send() {
     return fetch(this.options.url ?? window.location.href, {
       method: "POST",
-      //mode: 'no-cors',
+      // mode: 'no-cors', // можно добавить, но это уберет только CORS ошибку в js. С правильно настроенным сервером - будет работать и так. Иначе fetch (с откл CORS) будет давать статус запроса 0.
       body: this.options.data
     }).then(this._handleResponse.bind(this));
   }
@@ -890,7 +890,6 @@ var UserAction = class {
         if (this._active_requests.indexOf(fingerprint) === -1) {
           this._active_requests.push(fingerprint);
           (this.Emulator ? this.Emulator.emulate.bind(this.Emulator, fingerprint) : UserRequest.send.bind(UserRequest))().then(this._handleData.bind(this, UserRequest)).catch(this._handleError.bind(this, UserRequest)).finally(() => {
-            console.log(fingerprint, this._active_requests);
             let index = this._active_requests.indexOf(fingerprint);
             if (index !== -1) this._active_requests.splice(index, 1);
           });
@@ -902,7 +901,6 @@ var UserAction = class {
     if (!this.Emulator) this.Emulator = new RequestsEmulator();
   }
   _handleData(UserRequest, response_data) {
-    console.log(response_data);
     if (!response_data.status) throw new ServerRespondError(response_data.result.msg, response_data.result.code, response_data.result.info);
     (UserRequest.options.handleSuccess ?? this.handleSuccessDefault)(response_data.result);
   }

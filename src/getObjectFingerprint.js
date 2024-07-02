@@ -20,9 +20,7 @@ export default async function getObjectFingerprint( object ) {
     }
 
     let fingerprint = getSortedString( object ); // преобразуем объект в строку
-
     fingerprint = new TextEncoder().encode( fingerprint ); // преобразуем строку в байты
-
     fingerprint = await crypto.subtle.digest('SHA-256', fingerprint); // вычисляем SHA-256 хеш
 
     // Преобразуем массив байт в шестнадцатеричную строку
@@ -39,7 +37,7 @@ function getSortedString( object ) {
         sorted_object[key] = object[key];
     });
 
-    return JSON.stringify( sorted_object );
+    return JSON.stringify( sorted_object ); // все функции исключаются при формировании строки из объекта
 }
 
 async function entriesToString( entries ) {

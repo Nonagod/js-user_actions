@@ -34,17 +34,17 @@ class UserAction {
 
                         this._active_requests.push( fingerprint );
 
-                            (
-                                this.Emulator // исключаем fetch из цепочки
-                                    ? this.Emulator.emulate.bind( this.Emulator, fingerprint )
-                                    : UserRequest.send.bind( UserRequest )
-                            )()
-                            .then( this._handleData.bind( this, UserRequest ))
-                            .catch( this._handleError.bind( this, UserRequest ))
-                            .finally(() => {
-                                let index = this._active_requests.indexOf( fingerprint ); // ищем подпись запроса
-                                if( index !== -1 ) this._active_requests.splice(index, 1); // удаляем ее если есть
-                            })
+                        (
+                            this.Emulator // исключаем fetch из цепочки
+                                ? this.Emulator.emulate.bind( this.Emulator, fingerprint )
+                                : UserRequest.send.bind( UserRequest )
+                        )()
+                        .then( this._handleData.bind( this, UserRequest ))
+                        .catch( this._handleError.bind( this, UserRequest ))
+                        .finally(() => {
+                            let index = this._active_requests.indexOf( fingerprint ); // ищем подпись запроса
+                            if( index !== -1 ) this._active_requests.splice(index, 1); // удаляем ее если есть
+                        });
 
                     }else console.warn( new RepeatedRequestError( `The same request ("${action}") is sent repeatedly` ))
 

@@ -8,8 +8,9 @@
 <body>
 <button id="double">Задублированный запрос</button>
 <button id="emulate">Эмулировать (перезагрузка)</button>
+<button id="handlers">Свои обработчики</button>
+<!-- c сервера (можно локального, НО сервера) -->
 <button id="send">Отправить</button>
-<button id="send_cors">Отправить (c CORS, перезагрузка)</button> <!-- сдругого сервака (можно локального, НО сервера) -->
 <script>
     let _handlers = {
         double: () => {
@@ -53,20 +54,39 @@
         send: () => {
             console.info('ОТПРАВКА НА ORIGIN');
             window.UserAction.do( 'test', {
-                data: {error: 0}
-            });
-            /*ошибка*/window.UserAction.do( 'test', {
-                data: {error: 1}
-            });
-        },
-        /* * */send_cors: () => {
-            console.info('ОТПРАВКА НА ДРУГОЙ СЕРВЕР');
-            window.UserAction.do( 'test', {
                 data: {error: 0},
-                url: 'https://blockster-ext.websterstd.ru/'
+                url: 'https://blockster-ext.websterstd.ru'
             });
             /*ошибка*/window.UserAction.do( 'test', {
                 data: {error: 1},
+                url: 'https://blockster-ext.websterstd.ru'
+            });
+        },
+        handlers: () => {
+            console.info('СВОИ ОБРАБОТЧИКИ с ФАЙЛАМИ');
+
+            window.UserAction.do( 'test', {
+                data: {error: 0, file: new File([ "foo" ], "foo.txt", { type: "text/plain" })},
+                handleSuccess: (data) => { alert( 'Для запроса, успех: ' + data); },
+                url: 'https://blockster-ext.websterstd.ru/'
+            });
+            /*ошибка*/window.UserAction.do( 'test', {
+                data: {error: 1, file: new File([ "foo" ], "foo.txt", { type: "text/plain" })},
+                handleError: (Error) => { alert( 'Для запроса, ошибка: ' + Error.message); },
+                url: 'https://blockster-ext.websterstd.ru/'
+            });
+
+            /* замена по умолчанию */
+            UserAction.handleSuccessDefault = (data) => { alert( 'По умол., успех: ' + data); };
+            UserAction.handleErrorDefault = (Error) => { alert( 'Для умол., ошибка: ' + Error.message); };
+
+
+            window.UserAction.do( 'test', {
+                data: {error: 0, file: new File([ "foo2" ], "foo.txt", { type: "text/plain" })},
+                url: 'https://blockster-ext.websterstd.ru/'
+            });
+            /*ошибка, дубль*/window.UserAction.do( 'test', {
+                data: {error: 1, file: new File([ "foo" ], "foo.txt", { type: "text/plain" })},
                 url: 'https://blockster-ext.websterstd.ru/'
             });
 

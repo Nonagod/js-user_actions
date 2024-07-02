@@ -11,7 +11,7 @@ export default class RequestsEmulator {
     emulate( fingerprinting ) {
         if( !this._emulated_requests.hasOwnProperty( fingerprinting )) throw new EmulateRequestMissingError( `There is no request with this fingerprint` );
 
-        new Promise((resolve) => {
+        return new Promise((resolve) => {
             resolve( this._emulated_requests[fingerprinting] )
         });
     }
